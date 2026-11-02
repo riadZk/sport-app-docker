@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sport App - Database Schema</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #00d9ff;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.5rem;
+            margin: 30px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #00d9ff33;
+        }
+
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .table-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .table-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.2);
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
+            padding: 15px 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-header.user {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+        }
+
+        .table-header.team {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        }
+
+        .table-header.field {
+            background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%);
+        }
+
+        .table-header.game {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .table-header.booking {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+
+        .table-header.challenge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .table-header.stats {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .table-body {
+            padding: 15px 20px;
+        }
+
+        .column {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .column:last-child {
+            border-bottom: none;
+        }
+
+        .column-name {
+            font-weight: 500;
+            color: #e0e0e0;
+        }
+
+        .column-type {
+            font-size: 0.85rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .column-type.pk {
+            background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+            color: #333;
+            font-weight: bold;
+        }
+
+        .column-type.fk {
+            background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
+            color: #fff;
+        }
+
+        .column-type.string {
+            background: rgba(76, 175, 80, 0.3);
+        }
+
+        .column-type.integer {
+            background: rgba(33, 150, 243, 0.3);
+        }
+
+        .column-type.boolean {
+            background: rgba(255, 152, 0, 0.3);
+        }
+
+        .column-type.datetime {
+            background: rgba(156, 39, 176, 0.3);
+        }
+
+        .column-type.decimal {
+            background: rgba(0, 188, 212, 0.3);
+        }
+
+        .column-type.text {
+            background: rgba(121, 85, 72, 0.3);
+        }
+
+        /* Relationships Section */
+        .relationships {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .rel-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .rel-table th {
+            background: rgba(0, 217, 255, 0.2);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .rel-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .rel-table tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge-one {
+            background: #4ecdc4;
+            color: #fff;
+        }
+
+        .badge-many {
+            background: #ff6b6b;
+            color: #fff;
+        }
+
+        .arrow {
+            color: #00d9ff;
+            font-size: 1.2rem;
+            margin: 0 10px;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        /* Improvements Section */
+        .improvements {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(238, 90, 90, 0.1) 100%);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .improvements h3 {
+            color: #ff6b6b;
+            margin-bottom: 15px;
+        }
+
+        .improvement-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .improvement-item:last-child {
+            border-bottom: none;
+        }
+
+        .improvement-icon {
+            font-size: 1.2rem;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        .code-block .comment {
+            color: #6a9955;
+        }
+
+        .code-block .keyword {
+            color: #569cd6;
+        }
+
+        .code-block .string {
+            color: #ce9178;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🏆 Sport App - Database Schema</h1>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <span class="column-type pk">PK</span>
+                <span>Primary Key</span>
+            </div>
+            <div class="legend-item">
+                <span class="column-type fk">FK</span>
+                <span>Foreign Key</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(76, 175, 80, 0.5);"></div>
+                <span>String</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(33, 150, 243, 0.5);"></div>
+                <span>Integer</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(156, 39, 176, 0.5);"></div>
+                <span>DateTime</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(0, 188, 212, 0.5);"></div>
+                <span>Decimal</span>
+            </div>
+        </div>
+
+        <!-- Core Tables -->
+        <h2 class="section-title">👤 Core / Authentication Tables</h2>
+        <div class="tables-grid">
+            <!-- Role -->
+            <div class="table-card">
+                <div class="table-header user">📋 roles</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">name</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">created_at</span>
+                        <span class="column-type datetime">timestamp</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">updated_at</span>
+                        <span class="column-type datetime">timestamp</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User -->
+            <div class="table-card">
+                <div class="table-header user">👤 users</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">first_name</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">last_name</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">email</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">phone</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">password</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">email_verified_at</span>
+                        <span class="column-type datetime">timestamp</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">phone_verified_at</span>
+                        <span class="column-type datetime">timestamp</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">is_phone_verified</span>
+                        <span class="column-type boolean">boolean</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">profile_picture</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">role_id</span>
+                        <span class="column-type fk">FK → roles</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sport Category -->
+            <div class="table-card">
+                <div class="table-header">⚽ sport_categories</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">name</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">icon</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">created_at</span>
+                        <span class="column-type datetime">timestamp</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WhatsApp OTP -->
+            <div class="table-card">
+                <div class="table-header">📱 whatsapp_otps</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">phone</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">otp</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">expires_at</span>
+                        <span class="column-type datetime">timestamp</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Tables -->
+        <h2 class="section-title">👥 Team Management</h2>
+        <div class="tables-grid">
+            <!-- Team -->
+            <div class="table-card">
+                <div class="table-header team">👥 teams</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">name</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">logo</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">slug</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">user_id</span>
+                        <span class="column-type fk">FK → users</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">sport_category_id</span>
+                        <span class="column-type fk">FK → sport_categories</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Member -->
+            <div class="table-card">
+                <div class="table-header team">🤝 team_members</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">team_id</span>
+                        <span class="column-type fk">FK → teams</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">user_id</span>
+                        <span class="column-type fk">FK → users</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">role_id</span>
+                        <span class="column-type fk">FK → roles</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">status</span>
+                        <span class="column-type string">enum</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">joined_at</span>
+                        <span class="column-type datetime">timestamp</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Field Tables -->
+        <h2 class="section-title">🏟️ Field Management</h2>
+        <div class="tables-grid">
+            <!-- Field -->
+            <div class="table-card">
+                <div class="table-header field">🏟️ fields</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">name</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">address</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">city</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">longitude</span>
+                        <span class="column-type decimal">decimal</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">latitude</span>
+                        <span class="column-type decimal">decimal</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">max_per_team</span>
+                        <span class="column-type integer">integer</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">price</span>
+                        <span class="column-type decimal">decimal</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">sport_category_id</span>
+                        <span class="column-type fk">FK → sport_categories</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">user_id</span>
+                        <span class="column-type fk">FK → users</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Field Availability -->
+            <div class="table-card">
+                <div class="table-header field">📅 field_availabilities</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">field_id</span>
+                        <span class="column-type fk">FK → fields</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">day_of_week</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">start_time</span>
+                        <span class="column-type datetime">time</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">end_time</span>
+                        <span class="column-type datetime">time</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">is_available</span>
+                        <span class="column-type boolean">boolean</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offers -->
+            <div class="table-card">
+                <div class="table-header field">🎁 offers</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">title</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">description</span>
+                        <span class="column-type text">text</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">discount_percentage</span>
+                        <span class="column-type integer">integer</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">valid_from</span>
+                        <span class="column-type datetime">date</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">valid_until</span>
+                        <span class="column-type datetime">date</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">field_id</span>
+                        <span class="column-type fk">FK → fields</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking -->
+            <div class="table-card">
+                <div class="table-header booking">📝 bookings</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">field_id</span>
+                        <span class="column-type fk">FK → fields</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">user_id</span>
+                        <span class="column-type fk">FK → users</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">booking_date</span>
+                        <span class="column-type datetime">date</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">start_time</span>
+                        <span class="column-type datetime">time</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">end_time</span>
+                        <span class="column-type datetime">time</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">total_price</span>
+                        <span class="column-type decimal">decimal</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">status</span>
+                        <span class="column-type string">enum</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Tables -->
+        <h2 class="section-title">⚽ Game Management</h2>
+        <div class="tables-grid">
+            <!-- Game -->
+            <div class="table-card">
+                <div class="table-header game">⚽ games</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">name</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">field_id</span>
+                        <span class="column-type fk">FK → fields</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">team_a_id</span>
+                        <span class="column-type fk">FK → teams</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">team_b_id</span>
+                        <span class="column-type fk">FK → teams</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">date</span>
+                        <span class="column-type datetime">date</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">start_time</span>
+                        <span class="column-type datetime">time</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">end_time</span>
+                        <span class="column-type datetime">time</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">status</span>
+                        <span class="column-type string">enum</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">user_id</span>
+                        <span class="column-type fk">FK → users</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Player -->
+            <div class="table-card">
+                <div class="table-header game">🏃 game_players</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">game_id</span>
+                        <span class="column-type fk">FK → games</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">user_id</span>
+                        <span class="column-type fk">FK → users</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">team_id</span>
+                        <span class="column-type fk">FK → teams</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">position</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="table-card">
+                <div class="table-header game">🏆 results</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">game_id</span>
+                        <span class="column-type fk">FK → games</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">team_a_id</span>
+                        <span class="column-type fk">FK → teams</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">team_b_id</span>
+                        <span class="column-type fk">FK → teams</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">team_a_score</span>
+                        <span class="column-type integer">integer</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">team_b_score</span>
+                        <span class="column-type integer">integer</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">winner_team_id</span>
+                        <span class="column-type fk">FK → teams</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">is_draw</span>
+                        <span class="column-type boolean">boolean</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Challenge Tables -->
+        <h2 class="section-title">⚔️ Challenge System</h2>
+        <div class="tables-grid">
+            <!-- Challenge -->
+            <div class="table-card">
+                <div class="table-header challenge">⚔️ challenges</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">challenger_team_id</span>
+                        <span class="column-type fk">FK → teams</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">challenged_team_id</span>
+                        <span class="column-type fk">FK → teams</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">proposed_date_time</span>
+                        <span class="column-type datetime">datetime</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">proposed_field_id</span>
+                        <span class="column-type fk">FK → fields</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">status</span>
+                        <span class="column-type string">enum</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">message</span>
+                        <span class="column-type text">text</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Challenge History -->
+            <div class="table-card">
+                <div class="table-header challenge">📜 challenge_histories</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">challenge_id</span>
+                        <span class="column-type fk">FK → challenges</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">status</span>
+                        <span class="column-type string">string</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">note</span>
+                        <span class="column-type text">text</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">updated_by</span>
+                        <span class="column-type fk">FK → users</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Tables -->
+        <h2 class="section-title">📊 Statistics</h2>
+        <div class="tables-grid">
+            <!-- Player Stats -->
+            <div class="table-card">
+                <div class="table-header stats">📊 player_stats</div>
+                <div class="table-body">
+                    <div class="column">
+                        <span class="column-name">id</span>
+                        <span class="column-type pk">PK</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">user_id</span>
+                        <span class="column-type fk">FK → users</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">games</span>
+                        <span class="column-type integer">integer</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">goals</span>
+                        <span class="column-type integer">integer</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">assists</span>
+                        <span class="column-type integer">integer</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">wins</span>
+                        <span class="column-type integer">integer</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">losses</span>
+                        <span class="column-type integer">integer</span>
+                    </div>
+                    <div class="column">
+                        <span class="column-name">points_overall</span>
+                        <span class="column-type integer">integer</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Relationships -->
+        <div class="relationships">
+            <h2 class="section-title">🔗 Table Relationships</h2>
+            <table class="rel-table">
+                <thead>
+                    <tr>
+                        <th>From Table</th>
+                        <th>Relationship</th>
+                        <th>To Table</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-many">users</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">roles</span></td>
+                        <td>User has one role</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-many">teams</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">users</span></td>
+                        <td>Team has one owner</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-many">teams</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">sport_categories</span></td>
+                        <td>Team belongs to sport category</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-many">team_members</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">teams, users</span></td>
+                        <td>Junction table for team membership</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-many">fields</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">users, sport_categories</span></td>
+                        <td>Field has owner and sport type</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-many">field_availabilities</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">fields</span></td>
+                        <td>Availability slots for a field</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-many">offers</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">fields</span></td>
+                        <td>Promotional offers for field</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-many">bookings</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">fields, users</span></td>
+                        <td>Field reservation by user</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-many">games</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">fields, teams (x2)</span></td>
+                        <td>Game between two teams at a field</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-many">game_players</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">games, users, teams</span></td>
+                        <td>Players participating in a game</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-one">results</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">games</span></td>
+                        <td>One result per game</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-many">challenges</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">teams (x2), fields</span></td>
+                        <td>Challenge between two teams</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-many">challenge_histories</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">challenges, users</span></td>
+                        <td>Status history of challenge</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-one">player_stats</span></td>
+                        <td><span class="arrow">→</span> belongsTo</td>
+                        <td><span class="badge badge-one">users</span></td>
+                        <td>Aggregated player statistics</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Suggested Improvements -->
+        <div class="improvements">
+            <h3>⚠️ Suggested Improvements</h3>
+
+            <div class="improvement-item">
+                <span class="improvement-icon">1️⃣</span>
+                <div>
+                    <strong>Connect SportCategory to Field and Team</strong>
+                    <p>Add <code>sport_category_id</code> foreign key to both tables</p>
+                </div>
+            </div>
+
+            <div class="improvement-item">
+                <span class="improvement-icon">2️⃣</span>
+                <div>
+                    <strong>Add team_id to GamePlayer</strong>
+                    <p>To know which team the player belongs to in that specific game</p>
+                </div>
+            </div>
+
+            <div class="improvement-item">
+                <span class="improvement-icon">3️⃣</span>
+                <div>
+                    <strong>Add soft deletes</strong>
+                    <p>Add <code>deleted_at</code> column to important tables for data recovery</p>
+                </div>
+            </div>
+
+            <div class="improvement-item">
+                <span class="improvement-icon">4️⃣</span>
+                <div>
+                    <strong>Consider calculating PlayerStats dynamically</strong>
+                    <p>Instead of storing, calculate from Results table to avoid data inconsistency</p>
+                </div>
+            </div>
+
+            <div class="improvement-item">
+                <span class="improvement-icon">5️⃣</span>
+                <div>
+                    <strong>Add indexes</strong>
+                    <p>Add indexes on frequently queried columns like <code>status</code>, <code>date</code>, foreign
+                        keys</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>

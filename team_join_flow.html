@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Join Request - API Flow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #58a6ff;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        h2 {
+            color: #f0883e;
+            margin: 30px 0 15px;
+            font-size: 22px;
+            border-bottom: 1px solid #21262d;
+            padding-bottom: 8px;
+        }
+
+        h3 {
+            color: #7ee787;
+            margin: 20px 0 10px;
+            font-size: 16px;
+        }
+
+        .subtitle {
+            color: #8b949e;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .flow-box {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .flow-box p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .arrow {
+            color: #f0883e;
+            font-weight: bold;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .tag-player {
+            background: #1f6feb33;
+            color: #58a6ff;
+            border: 1px solid #1f6feb;
+        }
+
+        .tag-team {
+            background: #f0883e33;
+            color: #f0883e;
+            border: 1px solid #f0883e;
+        }
+
+        .tag-post {
+            background: #23883533;
+            color: #7ee787;
+            border: 1px solid #238835;
+        }
+
+        .tag-get {
+            background: #1f6feb33;
+            color: #58a6ff;
+            border: 1px solid #1f6feb;
+        }
+
+        .tag-put {
+            background: #f0883e33;
+            color: #f0883e;
+            border: 1px solid #f0883e;
+        }
+
+        .tag-approved {
+            background: #23883533;
+            color: #7ee787;
+        }
+
+        .tag-rejected {
+            background: #da363333;
+            color: #f85149;
+        }
+
+        .tag-pending {
+            background: #f0883e33;
+            color: #f0883e;
+        }
+
+        pre {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        code {
+            color: #e6edf3;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        .comment {
+            color: #8b949e;
+        }
+
+        .string {
+            color: #a5d6ff;
+        }
+
+        .url {
+            color: #7ee787;
+        }
+
+        .method {
+            color: #f0883e;
+            font-weight: bold;
+        }
+
+        .header {
+            color: #d2a8ff;
+        }
+
+        .note {
+            background: #1f6feb22;
+            border-left: 3px solid #1f6feb;
+            padding: 12px 16px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 13px;
+        }
+
+        .warning {
+            background: #da363322;
+            border-left: 3px solid #f85149;
+            padding: 12px 16px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 13px;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin: 15px 0;
+        }
+
+        .step-num {
+            background: #1f6feb;
+            color: #fff;
+            min-width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 15px;
+            margin-top: 2px;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .divider {
+            border: 0;
+            border-top: 1px dashed #30363d;
+            margin: 30px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 10px 15px;
+            border: 1px solid #30363d;
+            font-size: 13px;
+        }
+
+        th {
+            background: #161b22;
+            color: #58a6ff;
+        }
+
+        td {
+            background: #0d1117;
+        }
+
+        .schema {
+            color: #d2a8ff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🏟️ Team Join Request - API Flow</h1>
+    <p class="subtitle">Complete guide to test the Player ↔ Team join system with cURL commands</p>
+
+    <!-- ─────────────────────────────────────── -->
+    <h2>📋 Database Schema</h2>
+    <!-- ─────────────────────────────────────── -->
+
+    <div class="flow-box">
+        <h3>table: <span class="schema">team_join_requests</span></h3>
+        <table>
+            <tr>
+                <th>Column</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>bigint (PK)</td>
+                <td>Auto-increment</td>
+            </tr>
+            <tr>
+                <td>team_id</td>
+                <td>foreignId</td>
+                <td>→ teams.id</td>
+            </tr>
+            <tr>
+                <td>player_id</td>
+                <td>foreignId</td>
+                <td>→ player_stats.id (NOT users.id!)</td>
+            </tr>
+            <tr>
+                <td>requested_by</td>
+                <td>enum</td>
+                <td><span class="tag tag-player">player</span> or <span class="tag tag-team">team</span></td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>enum</td>
+                <td><span class="tag tag-pending">pending</span> <span class="tag tag-approved">approved</span> <span
+                        class="tag tag-rejected">rejected</span> cancelled</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>timestamp</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>timestamp</td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="warning">
+        ⚠️ <strong>Important:</strong> <code>player_id</code> references <code>player_stats.id</code>, NOT
+        <code>users.id</code>.<br>
+        A user must have a <code>PlayerStat</code> for the team's <code>sport_category_id</code> before they can join.
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <h2>🔄 Flow 1: Player Requests to Join a Team</h2>
+    <!-- ─────────────────────────────────────── -->
+
+    <div class="flow-box">
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+                <strong>Player</strong> clicks "Join Team" <span class="arrow">→</span> creates record with
+                <code>requested_by = 'player'</code>, <code>status = 'pending'</code>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+                <strong>Team Owner</strong> sees the request in the list
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+                <strong>Team Owner</strong> responds: <span class="tag tag-approved">approved</span> or <span
+                    class="tag tag-rejected">rejected</span>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+                If <span class="tag tag-approved">approved</span> <span class="arrow">→</span> <code>TeamMember</code>
+                is automatically created! ✅
+            </div>
+        </div>
+    </div>
+
+    <h3>Step 1 — Player sends join request</h3>
+    <div class="note">📌 Player must have a <code>PlayerStat</code> for the same <code>sport_category_id</code> as the
+        team</div>
+    <pre><code><span class="comment"># Player (token: PLAYER_TOKEN) requests to join team ID 5</span>
+<span class="method">curl -X POST</span> <span class="url">http://localhost:8000/api/teams/5/join</span> \
+  <span class="header">-H "Authorization: Bearer PLAYER_TOKEN"</span> \
+  <span class="header">-H "Accept: application/json"</span>
+</code></pre>
+
+    <h3>Step 2 — Team Owner lists join requests</h3>
+    <pre><code><span class="comment"># Team Owner sees all pending requests/invitations for team 5</span>
+<span class="method">curl -X GET</span> <span class="url">http://localhost:8000/api/teams/5/join-requests</span> \
+  <span class="header">-H "Authorization: Bearer OWNER_TOKEN"</span> \
+  <span class="header">-H "Accept: application/json"</span>
+</code></pre>
+
+    <h3>Step 3 — Team Owner approves (or rejects)</h3>
+    <pre><code><span class="comment"># Team Owner approves join request ID 1</span>
+<span class="method">curl -X PUT</span> <span class="url">http://localhost:8000/api/teams/5/join-requests/1/respond</span> \
+  <span class="header">-H "Authorization: Bearer OWNER_TOKEN"</span> \
+  <span class="header">-H "Accept: application/json"</span> \
+  <span class="header">-H "Content-Type: application/json"</span> \
+  <span class="string">-d '{"status": "approved"}'</span>
+</code></pre>
+
+    <pre><code><span class="comment"># Or reject it:</span>
+<span class="method">curl -X PUT</span> <span class="url">http://localhost:8000/api/teams/5/join-requests/1/respond</span> \
+  <span class="header">-H "Authorization: Bearer OWNER_TOKEN"</span> \
+  <span class="header">-H "Accept: application/json"</span> \
+  <span class="header">-H "Content-Type: application/json"</span> \
+  <span class="string">-d '{"status": "rejected"}'</span>
+</code></pre>
+
+    <hr class="divider">
+
+    <!-- ─────────────────────────────────────── -->
+    <h2>🔄 Flow 2: Team Invites a Player</h2>
+    <!-- ─────────────────────────────────────── -->
+
+    <div class="flow-box">
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+                <strong>Team Owner</strong> sends invite <span class="arrow">→</span> creates record with
+                <code>requested_by = 'team'</code>, <code>status = 'pending'</code>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+                <strong>Player</strong> sees the invitation in "My Join Requests"
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+                <strong>Player</strong> responds: <span class="tag tag-approved">approved</span> or <span
+                    class="tag tag-rejected">rejected</span>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+                If <span class="tag tag-approved">approved</span> <span class="arrow">→</span> <code>TeamMember</code>
+                is automatically created! ✅
+            </div>
+        </div>
+    </div>
+
+    <h3>Step 1 — Team Owner invites a player</h3>
+    <div class="note">📌 <code>player_id</code> here is the <strong>player_stats.id</strong>, NOT the user ID!</div>
+    <pre><code><span class="comment"># Team Owner invites player_stat ID 3 to team 5</span>
+<span class="method">curl -X POST</span> <span class="url">http://localhost:8000/api/teams/5/invite</span> \
+  <span class="header">-H "Authorization: Bearer OWNER_TOKEN"</span> \
+  <span class="header">-H "Accept: application/json"</span> \
+  <span class="header">-H "Content-Type: application/json"</span> \
+  <span class="string">-d '{"player_id": 3}'</span>
+</code></pre>
+
+    <h3>Step 2 — Player checks their invitations</h3>
+    <pre><code><span class="comment"># Player sees all their requests & invitations</span>
+<span class="method">curl -X GET</span> <span class="url">http://localhost:8000/api/my-join-requests</span> \
+  <span class="header">-H "Authorization: Bearer PLAYER_TOKEN"</span> \
+  <span class="header">-H "Accept: application/json"</span>
+</code></pre>
+
+    <h3>Step 3 — Player accepts (or rejects) the invitation</h3>
+    <pre><code><span class="comment"># Player accepts invitation (join request ID 2)</span>
+<span class="method">curl -X PUT</span> <span class="url">http://localhost:8000/api/teams/5/join-requests/2/respond</span> \
+  <span class="header">-H "Authorization: Bearer PLAYER_TOKEN"</span> \
+  <span class="header">-H "Accept: application/json"</span> \
+  <span class="header">-H "Content-Type: application/json"</span> \
+  <span class="string">-d '{"status": "approved"}'</span>
+</code></pre>
+
+    <hr class="divider">
+
+    <!-- ─────────────────────────────────────── -->
+    <h2>❌ Cancel a Request / Invitation</h2>
+    <!-- ─────────────────────────────────────── -->
+
+    <div class="flow-box">
+        <p>📌 <strong>Only the requester can cancel:</strong></p>
+        <p>• If <span class="tag tag-player">player</span> requested → <strong>Player</strong> cancels</p>
+        <p>• If <span class="tag tag-team">team</span> invited → <strong>Team Owner</strong> cancels</p>
+    </div>
+
+    <pre><code><span class="comment"># Cancel a pending join request (ID 1) — by the requester</span>
+<span class="method">curl -X PUT</span> <span class="url">http://localhost:8000/api/teams/5/join-requests/1/cancel</span> \
+  <span class="header">-H "Authorization: Bearer TOKEN"</span> \
+  <span class="header">-H "Accept: application/json"</span>
+</code></pre>
+
+    <hr class="divider">
+
+    <!-- ─────────────────────────────────────── -->
+    <h2>📊 All Endpoints Summary</h2>
+    <!-- ─────────────────────────────────────── -->
+
+    <table>
+        <tr>
+            <th>Method</th>
+            <th>Endpoint</th>
+            <th>Who</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><span class="tag tag-post">POST</span></td>
+            <td>/api/teams/{team}/join</td>
+            <td>Player</td>
+            <td>Player requests to join (no body needed)</td>
+        </tr>
+        <tr>
+            <td><span class="tag tag-post">POST</span></td>
+            <td>/api/teams/{team}/invite</td>
+            <td>Team Owner</td>
+            <td>Owner invites player (body: player_id = player_stats.id)</td>
+        </tr>
+        <tr>
+            <td><span class="tag tag-get">GET</span></td>
+            <td>/api/teams/{team}/join-requests</td>
+            <td>Team Owner</td>
+            <td>List all requests/invitations for the team</td>
+        </tr>
+        <tr>
+            <td><span class="tag tag-put">PUT</span></td>
+            <td>/api/teams/{team}/join-requests/{id}/respond</td>
+            <td>Other side</td>
+            <td>Approve or reject (body: status)</td>
+        </tr>
+        <tr>
+            <td><span class="tag tag-put">PUT</span></td>
+            <td>/api/teams/{team}/join-requests/{id}/cancel</td>
+            <td>Requester</td>
+            <td>Cancel a pending request</td>
+        </tr>
+        <tr>
+            <td><span class="tag tag-get">GET</span></td>
+            <td>/api/my-join-requests</td>
+            <td>Player</td>
+            <td>See all your requests & invitations</td>
+        </tr>
+    </table>
+
+    <hr class="divider">
+
+    <!-- ─────────────────────────────────────── -->
+    <h2>🧪 Prerequisites for Testing</h2>
+    <!-- ─────────────────────────────────────── -->
+
+    <div class="flow-box">
+        <h3>1. Create a Player Stat first (required before joining)</h3>
+        <pre><code><span class="method">curl -X POST</span> <span class="url">http://localhost:8000/api/players</span> \
+  <span class="header">-H "Authorization: Bearer PLAYER_TOKEN"</span> \
+  <span class="header">-H "Accept: application/json"</span> \
+  <span class="header">-H "Content-Type: application/json"</span> \
+  <span class="string">-d '{
+    "sport_category_id": 1,
+    "primary_position": "Forward",
+    "prefered_foot": "right"
+  }'</span>
+</code></pre>
+
+        <h3>2. Create a Team (as Team Owner)</h3>
+        <pre><code><span class="method">curl -X POST</span> <span class="url">http://localhost:8000/api/teams</span> \
+  <span class="header">-H "Authorization: Bearer OWNER_TOKEN"</span> \
+  <span class="header">-H "Accept: application/json"</span> \
+  <span class="header">-H "Content-Type: application/json"</span> \
+  <span class="string">-d '{
+    "name": "FC Test",
+    "sport_category_id": 1
+  }'</span>
+</code></pre>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ─────────────────────────────────────── -->
+    <h2>✅ What Happens on Approve?</h2>
+    <!-- ─────────────────────────────────────── -->
+
+    <div class="flow-box">
+        <p>When status is set to <span class="tag tag-approved">approved</span>, a <code>TeamMember</code> record is
+            <strong>automatically created</strong>:</p>
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>player_id</td>
+                <td>From join request → player_stats.id</td>
+            </tr>
+            <tr>
+                <td>team_id</td>
+                <td>The team</td>
+            </tr>
+            <tr>
+                <td>context</td>
+                <td>'club'</td>
+            </tr>
+            <tr>
+                <td>start_date</td>
+                <td>Current date (now)</td>
+            </tr>
+            <tr>
+                <td>role</td>
+                <td>'player'</td>
+            </tr>
+        </table>
+        <br>
+        <p>📌 Uses <code>firstOrCreate</code> — won't duplicate if member already exists.</p>
+    </div>
+
+</body>
+
+</html>
