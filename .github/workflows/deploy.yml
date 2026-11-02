@@ -1,0 +1,131 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Prevent concurrent deployments — queue instead of cancelling
+# so a mid-deploy push never tears down a running deployment.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      # Set "Required reviewers" on the GitHub Environment
+      # (Settings → Environments → production) to enforce
+      # manual approval before any deployment runs.
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          # Write key without ever echoing it to logs
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1 \
+            || { echo "::error::DEPLOY_SSH_PRIVATE_KEY is not a valid private key"; exit 1; }
+
+      - name: Verify SSH host fingerprint and build known_hosts
+        env:
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
+          PINNED_FINGERPRINT: ${{ secrets.VPS_SSH_HOST_FINGERPRINT }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Fetch the server's ED25519 host key ONCE on the correct port.
+          # Do NOT trust it yet — verify against the pinned fingerprint first.
+          KEY_LINE=$(ssh-keyscan -t ed25519 -p "$SSH_PORT" "$SSH_HOST" 2>/dev/null) \
+            || { echo "::error::Could not retrieve SSH host key for $SSH_HOST:$SSH_PORT"; exit 1; }
+
+          if [[ -z "$KEY_LINE" ]]; then
+            echo "::error::ssh-keyscan returned empty result for $SSH_HOST:$SSH_PORT"
+            exit 1
+          fi
+
+          # Calculate SHA256 fingerprint of the fetched key
+          ACTUAL_FINGERPRINT=$(echo "$KEY_LINE" | ssh-keygen -lf - | awk '{print $2}') \
+            || { echo "::error::Could not calculate SSH host key fingerprint"; exit 1; }
+
+          echo "Comparing ED25519 host key fingerprint against pinned value..."
+          if [[ "$ACTUAL_FINGERPRINT" != "$PINNED_FINGERPRINT" ]]; then
+            echo "::error::SSH host key fingerprint MISMATCH — possible MITM attack."
+            echo "::error::Aborting deployment. Verify the server key out-of-band."
+            exit 1
+          fi
+          echo "Host key fingerprint verified: ${ACTUAL_FINGERPRINT}"
+
+          # Add the VERIFIED key to known_hosts.
+          # ssh-keyscan output uses "host keytype key" format.
+          # For port 22, known_hosts entry is just "host ...".
+          # For custom ports, ssh requires "[host]:port ..." format.
+          if [[ "$SSH_PORT" == "22" ]]; then
+            echo "$KEY_LINE" >> ~/.ssh/known_hosts
+          else
+            # Replace the hostname field with [host]:port format
+            echo "$KEY_LINE" | awk -v hp="[${SSH_HOST}]:${SSH_PORT}" \
+              '{ $1 = hp; print }' >> ~/.ssh/known_hosts
+          fi
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        env:
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_USER: ${{ secrets.VPS_DEPLOY_USER }}
+          SSH_PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
+        run: |
+          # The SSH key in authorized_keys is forced to run:
+          #   command="/home/deploy/bin/deploy-v1.sh"
+          # so regardless of what we send, only deploy-v1.sh executes.
+          # We still pass "deploy-v1" explicitly so deploy-v1.sh can
+          # validate SSH_ORIGINAL_COMMAND and reject unexpected input.
+          DEPLOY_EXIT=0
+
+          ssh -i ~/.ssh/deploy_key \
+              -p "$SSH_PORT" \
+              -o IdentitiesOnly=yes \
+              -o BatchMode=yes \
+              -o ConnectTimeout=15 \
+              -o StrictHostKeyChecking=yes \
+              "$SSH_USER@$SSH_HOST" deploy-v1 || DEPLOY_EXIT=$?
+
+          if [[ "$DEPLOY_EXIT" -ne 0 ]]; then
+            echo "::error::Deployment failed with exit code $DEPLOY_EXIT"
+            exit "$DEPLOY_EXIT"
+          fi
+
+      - name: Verify health endpoint
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 15 \
+            --retry 3 --retry-delay 5 --retry-connrefused \
+            https://api-v1.parrotscan.com/up || true)
+
+          echo "Health endpoint returned HTTP $HTTP_CODE"
+          if [[ "$HTTP_CODE" != "200" ]]; then
+            echo "::error::Health check failed — app did not respond with 200 on /up"
+            exit 1
+          fi
+
+      - name: Report deployment status
+        if: always()
+        run: |
+          if [[ "${{ job.status }}" == "success" ]]; then
+            echo "::notice::Deployment to production completed successfully"
+          else
+            echo "::error::Deployment to production FAILED — check the step logs above"
+          fi
