@@ -20,7 +20,6 @@ if [[ ! -f "$ENV_FILE" ]]; then
     echo "ERROR: $ENV_FILE not found in $PROJECT_DIR"
     exit 1
 fi
-chmod 600 "$ENV_FILE"
 
 echo "=== [2/7] Fetching latest code ==="
 git fetch origin main
