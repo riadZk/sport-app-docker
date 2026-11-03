@@ -22,4 +22,26 @@ if [ "${APP_ENV:-local}" = "production" ] && [ -z "${APP_KEY:-}" ]; then
   exit 1
 fi
 
+# Ensure Laravel runtime directories exist and are writable by www-data.
+# The named volume mounts over /var/www/html/storage at container start,
+# so any directories created at build time are hidden. Create them here.
+mkdir -p \
+  storage/framework/cache/data \
+  storage/framework/sessions \
+  storage/framework/testing \
+  storage/framework/views \
+  storage/logs \
+  bootstrap/cache
+
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R ug+rwX storage bootstrap/cache
+
+# Remove stale config cache if it exists.
+# A cached config baked into the image with wrong values (e.g. view.compiled=false)
+# causes "Please provide a valid cache path" errors. Always start fresh.
+if [ -f bootstrap/cache/config.php ]; then
+  echo "Removing stale config cache..."
+  rm -f bootstrap/cache/config.php
+fi
+
 exec "$@"

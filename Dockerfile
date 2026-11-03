@@ -44,7 +44,11 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-progress
 COPY . .
 COPY --from=frontend /app/public/build ./public/build
-RUN composer dump-autoload --no-dev --classmap-authoritative --no-interaction \
+# Remove any stale config cache from the build context.
+# A cached config with wrong values will be baked into the image and
+# cause "Please provide a valid cache path" errors at runtime.
+RUN rm -f bootstrap/cache/config.php bootstrap/cache/routes-v7.php \
+    && composer dump-autoload --no-dev --classmap-authoritative --no-interaction \
     && php artisan package:discover --ansi \
     && php artisan storage:link \
     && chown -R www-data:www-data storage bootstrap/cache \
